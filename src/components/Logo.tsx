@@ -18,8 +18,8 @@ const Logo = ({ size = "md", className = "" }: { size?: "sm" | "md" | "lg", clas
       <div className="absolute inset-0 bg-gradient-to-tr from-primary to-accent opacity-70 blur-lg rounded-lg"></div>
       <div className="relative flex items-center justify-center w-full h-full">
         <img 
-          src="/lovable-uploads/8dbb34b5-a4ed-4118-8092-57d1d4557f2b.png" 
-          alt="BlockAuth Logo" 
+          src="/lovable-uploads/edcf1828-2b99-4012-8566-43cd16f6106e.png" 
+          alt="DevoCracy Logo" 
           className="w-full h-full object-contain"
         />
       </div>

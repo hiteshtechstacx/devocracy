@@ -101,7 +101,7 @@ const Index = () => {
           <div className="container mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Why Choose <span className="text-gradient">BlockAuth</span>
+                Why Choose <span className="text-gradient">DevoCracy</span>
               </h2>
               <p className="text-muted-foreground">
                 Our platform provides the most secure, private, and user-friendly authentication for voting systems.
@@ -151,7 +151,7 @@ const Index = () => {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 viewport={{ once: true }}
               >
-                Join thousands who trust BlockAuth for secure, private, and frictionless authentication.
+                Join thousands who trust DevoCracy for secure, private, and frictionless authentication.
               </motion.p>
               
               <motion.div

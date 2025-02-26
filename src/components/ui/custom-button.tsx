@@ -2,14 +2,16 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import type { HTMLMotionProps } from "framer-motion";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "className"> {
   variant?: "primary" | "secondary" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   fullWidth?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  className?: string;
 }
 
 const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -47,7 +49,6 @@ const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        ref={ref}
         className={cn(
           "relative inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border",
           variants[variant],
@@ -56,7 +57,8 @@ const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         disabled={isLoading}
-        {...props}
+        ref={ref}
+        {...(props as any)}
       >
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
