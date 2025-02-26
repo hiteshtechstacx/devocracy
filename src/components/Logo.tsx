@@ -18,7 +18,7 @@ const Logo = ({ size = "md", className = "" }: { size?: "sm" | "md" | "lg", clas
       <div className="absolute inset-0 bg-gradient-to-tr from-primary to-accent opacity-70 blur-lg rounded-lg"></div>
       <div className="relative flex items-center justify-center w-full h-full">
         <img 
-          src="/lovable-uploads/edcf1828-2b99-4012-8566-43cd16f6106e.png" 
+          src="/lovable-uploads/5dd4d263-9086-4784-bc8d-48bd0bdfcc4f.png" 
           alt="DevoCracy Logo" 
           className="w-full h-full object-contain"
         />
