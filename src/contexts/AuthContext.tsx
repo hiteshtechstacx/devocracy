@@ -1,0 +1,112 @@
+
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "sonner";
+
+interface User {
+  id: string;
+  walletAddress: string;
+  username?: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (walletAddress: string) => Promise<void>;
+  logout: () => void;
+  signup: (walletAddress: string, username: string) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const storedUser = localStorage.getItem("blockauth_user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Failed to parse stored user:", error);
+        localStorage.removeItem("blockauth_user");
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  const login = async (walletAddress: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+      // In a real app, you would verify the wallet signature here
+      // For demo purposes, we'll just create a user with the wallet address
+      const mockUser: User = {
+        id: `user_${Date.now()}`,
+        walletAddress,
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem("blockauth_user", JSON.stringify(mockUser));
+      toast.success("Successfully logged in");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Failed to login. Please try again.");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signup = async (walletAddress: string, username: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+      // In a real app, you would register the user on the blockchain here
+      const mockUser: User = {
+        id: `user_${Date.now()}`,
+        walletAddress,
+        username,
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem("blockauth_user", JSON.stringify(mockUser));
+      toast.success("Successfully registered");
+    } catch (error) {
+      console.error("Signup error:", error);
+      toast.error("Failed to register. Please try again.");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("blockauth_user");
+    toast.success("Successfully logged out");
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        logout,
+        signup,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
