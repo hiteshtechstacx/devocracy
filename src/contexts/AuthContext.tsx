@@ -7,15 +7,17 @@ interface User {
   phoneNumber: string;
   aadharNumber: string;
   username?: string;
+  profileImage?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (phoneNumber: string, aadharNumber: string) => Promise<void>;
+  login: (phoneNumber: string, aadharNumber: string, profileImage?: string) => Promise<void>;
   logout: () => void;
-  signup: (phoneNumber: string, aadharNumber: string, username: string) => Promise<void>;
+  signup: (phoneNumber: string, aadharNumber: string, username: string, profileImage?: string) => Promise<void>;
+  updateUserProfile: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (phoneNumber: string, aadharNumber: string): Promise<void> => {
+  const login = async (phoneNumber: string, aadharNumber: string, profileImage?: string): Promise<void> => {
     try {
       setIsLoading(true);
       // In a real app, you would verify the credentials here
@@ -47,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `user_${Date.now()}`,
         phoneNumber,
         aadharNumber,
+        profileImage
       };
       
       setUser(mockUser);
@@ -61,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (phoneNumber: string, aadharNumber: string, username: string): Promise<void> => {
+  const signup = async (phoneNumber: string, aadharNumber: string, username: string, profileImage?: string): Promise<void> => {
     try {
       setIsLoading(true);
       // In a real app, you would register the user on the server here
@@ -70,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phoneNumber,
         aadharNumber,
         username,
+        profileImage
       };
       
       setUser(mockUser);
@@ -81,6 +85,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const updateUserProfile = (updates: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem("blockauth_user", JSON.stringify(updatedUser));
+      toast.success("Profile updated successfully");
     }
   };
 
@@ -99,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         signup,
+        updateUserProfile
       }}
     >
       {children}

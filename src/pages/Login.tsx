@@ -2,21 +2,25 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { KeyRound, Phone, AlertCircle, ArrowRight } from "lucide-react";
+import { KeyRound, Phone, AlertCircle, ArrowRight, Camera } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CustomButton } from "@/components/ui/custom-button";
 import { useAuth } from "@/contexts/AuthContext";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import CameraCapture from "@/components/CameraCapture";
+import { toast } from "sonner";
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [step, setStep] = useState<"phone" | "otp" | "camera">("phone");
   const [timer, setTimer] = useState(0);
   const [isResending, setIsResending] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
+  const [showCamera, setShowCamera] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -122,10 +126,10 @@ const Login = () => {
         return;
       }
       
-      // Login with phoneNumber and a dummy aadharNumber for now
-      // In a real application, you would use the OTP verification result
-      await login(phoneNumber, "123456789012");
-      navigate("/dashboard");
+      // After OTP verification, open camera
+      setStep("camera");
+      setShowCamera(true);
+      
     } catch (error) {
       console.error("OTP verification error:", error);
       setError("Login failed. Please try again.");
@@ -135,12 +139,60 @@ const Login = () => {
   };
 
   const handleBack = () => {
-    setStep("phone");
-    setOtp("");
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      setTimer(0);
+    if (step === "otp") {
+      setStep("phone");
+      setOtp("");
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        setTimer(0);
+      }
+    } else if (step === "camera") {
+      setStep("otp");
     }
+  };
+
+  const handleCameraCapture = async (imageSrc: string) => {
+    setProfileImage(imageSrc);
+    setShowCamera(false);
+    
+    try {
+      setIsLoggingIn(true);
+      toast.success("Profile image captured successfully!");
+      
+      // In a real app with Supabase, you would upload the image to storage here
+      // For now, we'll just store it in the user object
+      
+      // Login with phoneNumber, aadharNumber, and profileImage
+      await login(phoneNumber, "123456789012", imageSrc);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Login failed. Please try again.");
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleCameraClose = () => {
+    setShowCamera(false);
+    // If user closes camera without taking a photo, proceed without image
+    handleProceedWithoutImage();
+  };
+
+  const handleProceedWithoutImage = async () => {
+    try {
+      setIsLoggingIn(true);
+      await login(phoneNumber, "123456789012");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Login failed. Please try again.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const openCamera = () => {
+    setShowCamera(true);
   };
 
   return (
@@ -161,7 +213,9 @@ const Login = () => {
                 <p className="text-muted-foreground text-sm">
                   {step === "phone" 
                     ? "Enter your phone number to receive an OTP" 
-                    : "Enter the OTP sent to your mobile"
+                    : step === "otp"
+                    ? "Enter the OTP sent to your mobile"
+                    : "Take a profile picture to complete login"
                   }
                 </p>
               </div>
@@ -206,7 +260,7 @@ const Login = () => {
                       </CustomButton>
                     </div>
                   </>
-                ) : (
+                ) : step === "otp" ? (
                   <>
                     <div>
                       <div className="flex justify-between items-center mb-2">
@@ -257,7 +311,7 @@ const Login = () => {
                           leftIcon={<KeyRound className="w-4 h-4" />}
                           onClick={handleVerifyOTP}
                         >
-                          Verify & Login
+                          Verify OTP
                         </CustomButton>
                         
                         <button 
@@ -269,21 +323,80 @@ const Login = () => {
                       </div>
                     </div>
                   </>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <p className="text-muted-foreground mb-4">
+                          Take a profile picture to complete your login
+                        </p>
+                        
+                        {profileImage ? (
+                          <div className="mx-auto w-32 h-32 rounded-full overflow-hidden mb-4 border-2 border-primary">
+                            <img 
+                              src={profileImage} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="mx-auto w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
+                            <Camera className="w-10 h-10 text-muted-foreground" />
+                          </div>
+                        )}
+                        
+                        <div className="space-y-3">
+                          <CustomButton
+                            fullWidth
+                            onClick={openCamera}
+                            leftIcon={<Camera className="w-4 h-4" />}
+                          >
+                            {profileImage ? "Take New Photo" : "Take Photo"}
+                          </CustomButton>
+                          
+                          <CustomButton
+                            fullWidth
+                            variant="outline"
+                            isLoading={isLoggingIn}
+                            onClick={handleProceedWithoutImage}
+                          >
+                            Skip & Proceed
+                          </CustomButton>
+                          
+                          <button 
+                            className="text-sm text-center w-full text-muted-foreground hover:text-foreground"
+                            onClick={handleBack}
+                          >
+                            Back to OTP
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 )}
                 
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <Link to="/signup" className="text-primary hover:underline">
-                      Create Account
-                    </Link>
-                  </p>
-                </div>
+                {step === "phone" && (
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Don't have an account?{" "}
+                      <Link to="/signup" className="text-primary hover:underline">
+                        Create Account
+                      </Link>
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
         </div>
       </main>
+      
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={handleCameraClose}
+        />
+      )}
       
       <Footer />
     </>
