@@ -4,7 +4,8 @@ import { toast } from "sonner";
 
 interface User {
   id: string;
-  walletAddress: string;
+  phoneNumber: string;
+  aadharNumber: string;
   username?: string;
 }
 
@@ -12,9 +13,9 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (walletAddress: string) => Promise<void>;
+  login: (phoneNumber: string, aadharNumber: string) => Promise<void>;
   logout: () => void;
-  signup: (walletAddress: string, username: string) => Promise<void>;
+  signup: (phoneNumber: string, aadharNumber: string, username: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,14 +38,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (walletAddress: string): Promise<void> => {
+  const login = async (phoneNumber: string, aadharNumber: string): Promise<void> => {
     try {
       setIsLoading(true);
-      // In a real app, you would verify the wallet signature here
-      // For demo purposes, we'll just create a user with the wallet address
+      // In a real app, you would verify the credentials here
+      // For demo purposes, we'll just create a user with the provided details
       const mockUser: User = {
         id: `user_${Date.now()}`,
-        walletAddress,
+        phoneNumber,
+        aadharNumber,
       };
       
       setUser(mockUser);
@@ -59,13 +61,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (walletAddress: string, username: string): Promise<void> => {
+  const signup = async (phoneNumber: string, aadharNumber: string, username: string): Promise<void> => {
     try {
       setIsLoading(true);
-      // In a real app, you would register the user on the blockchain here
+      // In a real app, you would register the user on the server here
       const mockUser: User = {
         id: `user_${Date.now()}`,
-        walletAddress,
+        phoneNumber,
+        aadharNumber,
         username,
       };
       
