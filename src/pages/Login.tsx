@@ -2,34 +2,65 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { KeyRound, AlertCircle } from "lucide-react";
+import { KeyRound, Phone, CreditCard, AlertCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CustomButton } from "@/components/ui/custom-button";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
-  const [walletAddress, setWalletAddress] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [aadharNumber, setAadharNumber] = useState("");
   const [error, setError] = useState("");
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleWalletConnect = async () => {
+  const validatePhoneNumber = (phone: string) => {
+    const phoneRegex = /^[6-9]\d{9}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validateAadharNumber = (aadhar: string) => {
+    const aadharRegex = /^\d{12}$/;
+    return aadharRegex.test(aadhar);
+  };
+
+  const handleLogin = async () => {
+    // Reset previous errors
+    setError("");
+    
+    // Validate phone number
+    if (!phoneNumber) {
+      setError("Phone number is required");
+      return;
+    }
+    
+    if (!validatePhoneNumber(phoneNumber)) {
+      setError("Please enter a valid 10-digit Indian phone number");
+      return;
+    }
+    
+    // Validate Aadhar number
+    if (!aadharNumber) {
+      setError("Aadhar number is required");
+      return;
+    }
+    
+    if (!validateAadharNumber(aadharNumber)) {
+      setError("Please enter a valid 12-digit Aadhar number");
+      return;
+    }
+    
     try {
-      setIsConnecting(true);
-      setError("");
-      
-      // For demo purposes, if no wallet is entered, generate a mock one
-      const address = walletAddress || `0x${Math.random().toString(16).slice(2, 12)}...${Math.random().toString(16).slice(2, 6)}`;
-      
-      await login(address);
+      setIsLoggingIn(true);
+      await login(phoneNumber, aadharNumber);
       navigate("/dashboard");
     } catch (error) {
-      console.error("Connection error:", error);
-      setError("Failed to connect wallet. Please try again.");
+      console.error("Login error:", error);
+      setError("Login failed. Please check your credentials and try again.");
     } finally {
-      setIsConnecting(false);
+      setIsLoggingIn(false);
     }
   };
 
@@ -47,9 +78,9 @@ const Login = () => {
               transition={{ duration: 0.5 }}
             >
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold mb-2">Login to BlockAuth</h1>
+                <h1 className="text-2xl font-bold mb-2">Login to DevoCracy</h1>
                 <p className="text-muted-foreground text-sm">
-                  Connect your wallet to authenticate securely
+                  Sign in to access secure blockchain-based voting
                 </p>
               </div>
               
@@ -63,34 +94,58 @@ const Login = () => {
               <div className="space-y-6">
                 <div>
                   <label className="text-sm font-medium block mb-2">
-                    Wallet Address (optional)
+                    Phone Number
                   </label>
-                  <input
-                    type="text"
-                    placeholder="0x..."
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-muted border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    For demo purposes. Leave blank to generate a mock address.
-                  </p>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <Phone className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="tel"
+                      placeholder="10-digit mobile number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 rounded-lg bg-muted border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                      maxLength={10}
+                    />
+                  </div>
                 </div>
                 
-                <CustomButton
-                  fullWidth
-                  isLoading={isConnecting}
-                  leftIcon={<KeyRound className="w-4 h-4" />}
-                  onClick={handleWalletConnect}
-                >
-                  Connect Wallet
-                </CustomButton>
+                <div>
+                  <label className="text-sm font-medium block mb-2">
+                    Aadhar Number
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <CreditCard className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="12-digit Aadhar number"
+                      value={aadharNumber}
+                      onChange={(e) => setAadharNumber(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 rounded-lg bg-muted border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                      maxLength={12}
+                    />
+                  </div>
+                </div>
+                
+                <div className="pt-2">
+                  <CustomButton
+                    fullWidth
+                    isLoading={isLoggingIn}
+                    leftIcon={<KeyRound className="w-4 h-4" />}
+                    onClick={handleLogin}
+                  >
+                    Login
+                  </CustomButton>
+                </div>
                 
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">
                     Don't have an account?{" "}
                     <Link to="/signup" className="text-primary hover:underline">
-                      Sign up
+                      Create Account
                     </Link>
                   </p>
                 </div>

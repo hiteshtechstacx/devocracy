@@ -39,7 +39,7 @@ const Dashboard = () => {
                 <div>
                   <h1 className="text-2xl font-bold mb-2">Welcome, {user.username || "User"}</h1>
                   <p className="text-muted-foreground text-sm">
-                    Wallet: {user.walletAddress}
+                    Phone: {user.phoneNumber}
                   </p>
                 </div>
                 
